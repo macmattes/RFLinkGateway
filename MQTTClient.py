@@ -37,20 +37,20 @@ class MQTTClient(multiprocessing.Process):
     def _on_message(self, client, userdata, message):
         self.logger.debug("Message received: %s" % (message))
 
-        data = message.topic.replace(self.mqttDataPrefix + "/", "").split("/")
+        data = message.topic.replace("cmnd/" + self.mqttDataPrefix + "/", "").split("/")
         data_out = {
             'method': 'subscribe',
             'topic': message.topic,
             'family': data[0],
             'deviceId': data[1],
-            'param': data[3],
+            'param': data[2],
             'payload': message.payload.decode('ascii'),
             'qos': 1
         }
         self.commandQ.put(data_out)
 
     def publish(self, task):
-        topic = "%s/%s/%s/R/%s" % (self.mqttDataPrefix, task['family'], task['deviceId'], task['param'])
+        topic = "stat/%s/%s/%s/%s" % (self.mqttDataPrefix, task['family'], task['deviceId'], task['param'])
         try:
             publish.single(topic, payload=task['payload'])
             self.logger.debug('Sending:%s' % (task))
@@ -59,7 +59,7 @@ class MQTTClient(multiprocessing.Process):
             self.messageQ.put(task)
 
     def run(self):
-        self._mqttConn.subscribe("%s/+/+/W/+" % self.mqttDataPrefix)
+        self._mqttConn.subscribe("cmnd/%s/+/+/#" % self.mqttDataPrefix)
         while True:
             if not self.messageQ.empty():
                 task = self.messageQ.get()
