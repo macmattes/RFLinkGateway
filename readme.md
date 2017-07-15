@@ -15,11 +15,11 @@ Message:
 
  is translated to following topics:
 
- `/data/RFLINK/Oregon Rain2/2a19/R/RAIN 002a`
+ `stat/data/RFLINK/Oregon Rain2/2a19/RAIN 002a`
 
- `/data/RFLINK/Oregon Rain2/2a19/R/RAINTOT 0054`
+ `stat/data/RFLINK/Oregon Rain2/2a19/RAINTOT 0054`
 
- `/data/RFLINK/Oregon Rain2/2a19/R/BAT OK`
+ `stat/data/RFLINK/Oregon Rain2/2a19/BAT OK`
 
 
 
@@ -35,7 +35,7 @@ Whole configuration is located in config.json file.
 {
   "mqtt_host": "your.mqtt.host",
   "mqtt_port": 1883,
-  "mqtt_prefix": "/data/RFLINK",
+  "mqtt_prefix": "RFLINK",
   "rflink_tty_device": "/dev/ttyUSB0",
   "rflink_direct_output_params": ["BAT", "CMD", "SET_LEVEL", "SWITCH", "HUM", "CHIME", "PIR", "SMOKEALERT"]
 }
@@ -45,20 +45,24 @@ config param | meaning
 -------------|---------
 | mqtt_host | MQTT broker host |
 | mqtt_port | MQTT broker port|
-| mqtt_prefix | prefix for publish and subscribe topic|
+| mqtt_prefix | prefix for publish (stat/prefix/...) and subscribe (cmnd/prefix/...) topic| 
 | rflink_tty_device | Arduino tty device |
 | rflink_ignored_devices | Parameters transferred to MQTT without any processing|
 
 ##Output data
 Application pushes informations to MQTT broker in following format:
-[mqtt_prefix]/[device_type]/[device_id]/R/[parameter]
+standard: if extended topic not defined
+stat/[mqtt_prefix]/[device_type]/[device_id]/[parameter]
 
-`/data/RFLINK/TriState/8556a8/W/1 OFF`
+extended: if extended topic for 'SWITCH' is defined
+stat/[mqtt_prefix]/[device_type]/[device_id]/[device_port]/[parameter]
+
+'stat/RFLink/BrelMotor/e440ab/c4 STOP'
 
 Every change should be published to topic:
-[mqtt_prefix]/[device_type]/[device_id]/W/[switch_ID]
+cmnd/[mqtt_prefix]/[device_type]/[device_id]/[switch_ID]
 
-`/data/RFLINK/TriState/8556a8/W/1 ON`
+`cmnd/data/RFLINK/TriState/8556a8/1 ON`
 
 
 ##References
