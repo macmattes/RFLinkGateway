@@ -1,17 +1,17 @@
 {
-  "mqtt_host": "malinka.home",
+  "mqtt_host": "broker.local",
   "mqtt_port": 1883,
-  "mqtt_prefix": "/data/RFLINK",
+  "mqtt_prefix": "RFLink",
   "mqtt_message_timeout": 60,
-  "rflink_tty_device": "/dev/ttyUSB0",
+  "rflink_tty_device": "/dev/cu.usbmodem4131",
   "rflink_ignored_devices": [
+  ],
+  "rflink_direct_output_params": [
     "BAT",
     "CMD",
-    "SET_LEVEL",
-    "SWITCH",
-    "HUM",
-    "CHIME",
-    "PIR",
-    "SMOKEALERT"
+    "SWITCH"
+  ],
+  "rflink_extendedtopic_params": [
+    "SWITCH"
   ]
 }
