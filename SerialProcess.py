@@ -23,6 +23,7 @@ class SerialProcess(multiprocessing.Process):
         self.connect()
 
         self.processing_exception = config['rflink_direct_output_params']
+        self.processing_extendedtopic = config['rflink_extendedtopic_params']
 
     def close(self):
         self.sp.close()
@@ -36,26 +37,55 @@ class SerialProcess(multiprocessing.Process):
             family = data[2]
             deviceId = data[3].split("=")[1]
             d = {}
+            xkey = False
+            longkey = ""
             for t in data[4:]:
                 token = t.split("=")
                 d[token[0]] = token[1]
             for key in d:
+                if key in self.processing_extendedtopic:
+                    xkey = True
                 if key in self.processing_exception:
-                    val = d[key]
-                else:
+                   	val = d[key]
+               	else:
                     val = int(d[key], 16) / 10
-                topic_out = "%s/%s/READ/%s" % (family, deviceId, key)
+                if not xkey:
+                    topic_out = "stat/%s/%s/%s" % (family, deviceId, key)
+                    data_out = {
+                  		'method': 'publish',
+                   		'topic': topic_out,
+                   		'family': family,
+                   		'deviceId': deviceId,
+                  	 	'param': key,
+                  	 	'payload': val,
+                  	 	'qos': 1,
+                  	 	'timestamp': time.time()
+                    }
+                    out = out + [data_out]
+                else:
+                    if longkey == "":
+                        if key == sorted(d.keys())[-1]:
+                            longkey = str(val)
+                        else:
+                            longkey = key
+                    else:
+                        if key == sorted(d.keys())[-1]:
+                           longkey = longkey + "/" + str(val)
+                        #else:
+                           #longkey = longkey + "/" + key
+            if xkey:
+                topic_out = "stat/%s/%s/%s" % (family, deviceId, longkey)
                 data_out = {
-                    'method': 'publish',
-                    'topic': topic_out,
-                    'family': family,
-                    'deviceId': deviceId,
-                    'param': key,
-                    'payload': val,
-                    'qos': 1,
-                    'timestamp': time.time()
-                }
-                out = out + [data_out]
+                  	'method': 'publish',
+                   	'topic': topic_out,
+                  	'family': family,
+               		'deviceId': deviceId,
+               	 	'param': longkey,
+               	 	'payload': val,
+               	 	'qos': 1,
+               	 	'timestamp': time.time()
+           		}
+                out = out + [data_out]			
         return out
 
     def prepare_input(self, task):
